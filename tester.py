@@ -15,17 +15,154 @@ def load_image(name, colorkey=None):
     return image
 
 
-size = width, height = 1344, 690
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = stikmen
+        self.rect = self.image.get_rect()
+        self.rect.x = 100
+        self.rect.y = 273
+
+    def update(self):
+        global height
+        global flag1
+        global karta
+        if flag1 != 0:
+            if len(pygame.sprite.spritecollide(self, walls, False)) >= 0:
+                if len(pygame.sprite.spritecollide(self, thorns, False)) == 0:
+                    if flag1 == 'a':
+                        self.rect.x -= v / fps
+                    elif flag1 == 'd':
+                        self.rect.x += v / fps
+                    elif flag1 == 'w':
+                        for i in range(70):
+                            if len(pygame.sprite.spritecollide(self, thorns, False)) == 0:
+                                if len(pygame.sprite.spritecollide(self, walls,
+                                                                   False)) >= 0 and \
+                                        karta[self.rect.y // 21][self.rect.x // 21] != '.':
+                                    print(karta[self.rect.y // 21][self.rect.x // 21])
+                                    for event in pygame.event.get():
+                                        if event.type == pygame.KEYDOWN:
+                                            if event.key == pygame.K_LEFT:
+                                                flag1 = 'a'
+                                            elif event.key == pygame.K_RIGHT:
+                                                flag1 = 'd'
+                                        elif event.type == pygame.KEYUP:
+                                            flag1 = 0
+                                    if flag1 != 0:
+                                        if flag1 == 'a':
+                                            self.rect.x -= v / fps
+                                        elif flag1 == 'd':
+                                            self.rect.x += v / fps
+                                    self.rect.y -= 3
+                                    clock.tick(fps * 0.9)
+                                    pygame.display.flip()
+                                    player.draw(screen)
+                                else:
+                                    self.rect.y += 3
+                                    break
+                            else:
+                                generate_level(load_level('map'))
+                                self.rect.x = 100
+                                self.rect.y = 273
+                                player.add(self)
+                                player.update()
+                                player.draw(screen)
+                                flag1 = 0
+                                break
+                        while self.rect.y <= height - 65 and len(
+                                pygame.sprite.spritecollide(self, walls, False)) == 0:
+                            if len(pygame.sprite.spritecollide(self, thorns, False)) == 0:
+                                for event in pygame.event.get():
+                                    if event.type == pygame.KEYDOWN:
+                                        if event.key == pygame.K_LEFT:
+                                            flag1 = 'a'
+                                        elif event.key == pygame.K_RIGHT:
+                                            flag1 = 'd'
+                                    elif event.type == pygame.KEYUP:
+                                        flag1 = 0
+                                if flag1 != 0:
+                                    if flag1 == 'a':
+                                        self.rect.x -= v / fps
+                                    elif flag1 == 'd':
+                                        self.rect.x += v / fps
+                                self.rect.y += 3
+                                clock.tick(fps * 0.9)
+                                pygame.display.flip()
+                                player.draw(screen)
+                            else:
+                                print('ok')
+                                generate_level(load_level('map'))
+                                self.rect.x = 100
+                                self.rect.y = 273
+                                player.add(self)
+                                player.update()
+                                player.draw(screen)
+                                break
+                else:
+                    generate_level(load_level('map'))
+                    self.rect.x = 100
+                    self.rect.y = 273
+                    player.add(self)
+                    player.update()
+                    player.draw(screen)
+
+    def gravity(self):
+        global flag1
+        global flag2
+        while self.rect.y <= height - 65 and len(
+                pygame.sprite.spritecollide(self, walls, False)) == 0:
+            if flag2 == 1:
+                break
+            if len(pygame.sprite.spritecollide(self, thorns, False)) == 0:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_LEFT:
+                            flag1 = 'a'
+                        elif event.key == pygame.K_RIGHT:
+                            flag1 = 'd'
+                    elif event.type == pygame.KEYUP:
+                        flag1 = 0
+                if flag1 != 0:
+                    if flag1 == 'a':
+                        self.rect.x -= v / fps
+                    elif flag1 == 'd':
+                        self.rect.x += v / fps
+                self.rect.y += 3
+                clock.tick(fps * 0.9)
+                pygame.display.flip()
+                player.draw(screen)
+            else:
+                generate_level(load_level('map'))
+                self.rect.x = 100
+                self.rect.y = 273
+                player.add(self)
+                player.update()
+                player.draw(screen)
+                #                flag2 = 1
+                break
+
+
+flag2 = 0
+size = width, height = 1264, 690
 screen = pygame.display.set_mode(size)
-fps = 60
+pygame.display.set_caption("One Level")
+v = 150
+fps = 100
 clock = pygame.time.Clock()
 wall_im = load_image('wall.png')
 thorn = load_image('шип.png', -1)
+stikmen = load_image('стикмен-стоит.png', -1)
 door = load_image('door.png')
 wall_im1 = pygame.transform.scale(wall_im, (21, 21))
 thorn1 = pygame.transform.scale(thorn, (21, 21))
 door1 = pygame.transform.scale(door, (30, 150))
-all_sprites = pygame.sprite.Group()
+walls = pygame.sprite.Group()
+player = pygame.sprite.Group()
+thorns = pygame.sprite.Group()
+player1 = Player()
+player.add(player1)
+flag1 = 0
 
 
 def terminate():
@@ -38,14 +175,14 @@ def load_level(filename):
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
-    for i in level_map:
-        print(len(i))
-
     # и подсчитываем максимальную длину
     max_width = max(map(len, level_map))
 
     # дополняем каждую строку пустыми клетками ('.')
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+
+
+karta = load_level('map')
 
 
 def generate_level(levelmap):
@@ -56,9 +193,9 @@ def generate_level(levelmap):
     sprite1 = pygame.sprite.Sprite()
     sprite1.image = door1
     sprite1.rect = sprite1.image.get_rect()
-    sprite1.rect.x = 1115
+    sprite1.rect.x = 1035
     sprite1.rect.y = 540
-    all_sprites.add(sprite1)
+    walls.add(sprite1)
     pygame.init()
     x = -21
     y = -21
@@ -73,16 +210,21 @@ def generate_level(levelmap):
                 sprite.rect = sprite.image.get_rect()
                 sprite.rect.x = y
                 sprite.rect.y = x
-                all_sprites.add(sprite)
+                walls.add(sprite)
             elif levelmap[i][j] == '*':
                 sprite.image = thorn1
                 sprite.rect = sprite.image.get_rect()
                 sprite.rect.x = y
                 sprite.rect.y = x
-                all_sprites.add(sprite)
+                thorns.add(sprite)
+
+
+# def stikmen_movement(direction):
 
 
 def start_screen():
+    global flag1
+    global karta
     intro_text = ["Press 'tab' to start"]
 
     fon = pygame.transform.scale(
@@ -101,18 +243,43 @@ def start_screen():
         intro_rect.x = 500
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
-
+    flag = 0
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN:
-                if event.key == 9:
+                if event.key == 9 and flag == 0:
                     generate_level(load_level('map'))
+                    flag = 1
+                if event.key == pygame.K_LEFT:
+                    flag1 = 'a'
+                elif event.key == pygame.K_RIGHT:
+                    flag1 = 'd'
+                elif event.key == 32:
+                    if flag == 1:
+                        flag1 = 'w'
+                        player.update()
+            elif event.type == pygame.KEYUP:
+                flag1 = 0
+        if flag1 == 'a':
+            if karta[player1.rect.y // 21][player1.rect.x // 21] != '.':
+                player.update()
+        elif flag1 == 'd':
+            if karta[player1.rect.y // 21][player1.rect.x // 21 + 1] != '.':
+                player.update()
         pygame.display.flip()
-        all_sprites.update()
-        all_sprites.draw(screen)
-        print(all_sprites)
+        walls.draw(screen)
+        thorns.draw(screen)
+        if flag == 1:
+            #            generate_level(load_level('map'))
+            #            walls.draw(screen)
+            #            thorns.draw(screen)
+            #player.add(player1)
+            #player.update()
+            player.draw(screen)
+            if len(pygame.sprite.spritecollide(player1, walls, False)) == 0:
+                player1.gravity()
         clock.tick(fps)
 
 
