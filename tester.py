@@ -51,13 +51,21 @@ class Player(pygame.sprite.Sprite):
                                             flag1 = 0
                                     if flag1 != 0:
                                         if flag1 == 'a':
-                                            self.rect.x -= v / fps
+                                            if karta[self.rect.y // 21][self.rect.x // 21] != '.':
+                                                self.rect.x -= v / fps
                                         elif flag1 == 'd':
-                                            self.rect.x += v / fps
+                                            if karta[self.rect.y // 21][
+                                                self.rect.x // 21 + 1] != '.':
+                                                self.rect.x += v / fps
                                     self.rect.y -= 3
                                     clock.tick(fps * 0.9)
-                                    pygame.display.flip()
+                                    screen.fill((0, 0, 0))
+                                    screen.blit(fon1, (0, 0))
+                                    walls.draw(screen)
+                                    thorns.draw(screen)
+                                    player.update()
                                     player.draw(screen)
+                                    pygame.display.flip()
                                 else:
                                     self.rect.y += 3
                                     break
@@ -83,13 +91,20 @@ class Player(pygame.sprite.Sprite):
                                         flag1 = 0
                                 if flag1 != 0:
                                     if flag1 == 'a':
-                                        self.rect.x -= v / fps
+                                        if karta[self.rect.y // 21][self.rect.x // 21] != '.':
+                                            self.rect.x -= v / fps
                                     elif flag1 == 'd':
-                                        self.rect.x += v / fps
+                                        if karta[self.rect.y // 21][self.rect.x // 21 + 1] != '.':
+                                            self.rect.x += v / fps
                                 self.rect.y += 3
                                 clock.tick(fps * 0.9)
-                                pygame.display.flip()
+                                screen.fill((0, 0, 0))
+                                screen.blit(fon1, (0, 0))
+                                walls.draw(screen)
+                                thorns.draw(screen)
+                                player.update()
                                 player.draw(screen)
+                                pygame.display.flip()
                             else:
                                 print('ok')
                                 generate_level(load_level('map'))
@@ -125,13 +140,20 @@ class Player(pygame.sprite.Sprite):
                         flag1 = 0
                 if flag1 != 0:
                     if flag1 == 'a':
-                        self.rect.x -= v / fps
+                        if karta[self.rect.y // 21][self.rect.x // 21] != '.':
+                            self.rect.x -= v / fps
                     elif flag1 == 'd':
-                        self.rect.x += v / fps
+                        if karta[self.rect.y // 21][self.rect.x // 21 + 1] != '.':
+                            self.rect.x += v / fps
                 self.rect.y += 3
                 clock.tick(fps * 0.9)
-                pygame.display.flip()
+                screen.fill((0, 0, 0))
+                screen.blit(fon1, (0, 0))
+                walls.draw(screen)
+                thorns.draw(screen)
+                player.update()
                 player.draw(screen)
+                pygame.display.flip()
             else:
                 generate_level(load_level('map'))
                 self.rect.x = 100
@@ -154,6 +176,7 @@ wall_im = load_image('wall.png')
 thorn = load_image('шип.png', -1)
 stikmen = load_image('стикмен-стоит.png', -1)
 door = load_image('door.png')
+key = load_image('ключ.png', -1)
 wall_im1 = pygame.transform.scale(wall_im, (21, 21))
 thorn1 = pygame.transform.scale(thorn, (21, 21))
 door1 = pygame.transform.scale(door, (30, 150))
@@ -186,10 +209,11 @@ karta = load_level('map')
 
 
 def generate_level(levelmap):
-    fon = pygame.transform.scale(
+    global fon1
+    fon1 = pygame.transform.scale(
         load_image('fon2.jpg'),
         (width, height))
-    screen.blit(fon, (0, 0))
+    screen.blit(fon1, (0, 0))
     sprite1 = pygame.sprite.Sprite()
     sprite1.image = door1
     sprite1.rect = sprite1.image.get_rect()
@@ -268,15 +292,20 @@ def start_screen():
         elif flag1 == 'd':
             if karta[player1.rect.y // 21][player1.rect.x // 21 + 1] != '.':
                 player.update()
+            else:
+                print('ok')
+                if len(pygame.sprite.spritecollide(player1, walls, False)) <= 1:
+                    player.update()
         pygame.display.flip()
         walls.draw(screen)
         thorns.draw(screen)
         if flag == 1:
-            #            generate_level(load_level('map'))
-            #            walls.draw(screen)
-            #            thorns.draw(screen)
-            #player.add(player1)
-            #player.update()
+            screen.fill((0, 0, 0))
+            screen.blit(fon1, (0, 0))
+            walls.draw(screen)
+            thorns.draw(screen)
+            # player.add(player1)
+            # player.update()
             player.draw(screen)
             if len(pygame.sprite.spritecollide(player1, walls, False)) == 0:
                 player1.gravity()
