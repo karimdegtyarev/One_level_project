@@ -20,6 +20,54 @@ def load_image(name, colorkey=None):
     return image
 
 
+def load_image_thorn_right(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((150, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+def load_image_thorn_left(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((1, 5))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+def load_image_thorn_top(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((6, 12))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+def load_image_thorn_down(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((0, 160))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
 def load_level(filename):
     filename = "data/" + filename
     # читаем уровень, убирая символы перевода строки
@@ -42,8 +90,14 @@ def generate_level(levelmap):
         for x in range(len(levelmap[y])):
             if levelmap[y][x] == '.':
                 Tile('wall', x, y)
-            elif levelmap[y][x] == '*':
-                Tile('thorn', x, y)
+            elif levelmap[y][x] == '1':
+                Tile("right", x, y)
+            elif levelmap[y][x] == '2':
+                Tile("left", x, y)
+            elif levelmap[y][x] == '3':
+                Tile("top", x, y)
+            elif levelmap[y][x] == '4':
+                Tile("down", x, y)
     Tile('door', 49, 26)
     first_player = Player(5, 13)
     key = Key(52, 6)
@@ -83,11 +137,16 @@ class Player(pygame.sprite.Sprite):
             tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self):
+        global walk_r_count
         if move_1 == "Up":
-            # player.image = walkUp
+            player.image = jump
             player.move(0, -step)
         if move_1 == "Right":
-            # player.image = walkRight
+            player.image = walkRight[walk_r_count]
+            walk_r_count += 1
+            if walk_r_count == 6:
+                walk_r_count = 0
+            print(walk_r_count)
             player.move(+step, 0)
         if move_1 == "Left":
             # player.image = walkLeft
@@ -107,7 +166,20 @@ class Player(pygame.sprite.Sprite):
 
         test = pygame.sprite.spritecollide(self, tiles_group, False)
         for obj in test:
-            if obj.type == "thorn":
+            player.image = player_image
+            if obj.type == "right":
+                self.rect.x = tile_width * self.pos_x + 15
+                self.rect.y = tile_height * self.pos_y + 5
+                break
+            elif obj.type == "left":
+                self.rect.x = tile_width * self.pos_x + 15
+                self.rect.y = tile_height * self.pos_y + 5
+                break
+            elif obj.type == "top":
+                self.rect.x = tile_width * self.pos_x + 15
+                self.rect.y = tile_height * self.pos_y + 5
+                break
+            elif obj.type == "down":
                 self.rect.x = tile_width * self.pos_x + 15
                 self.rect.y = tile_height * self.pos_y + 5
                 break
@@ -127,6 +199,8 @@ def start_screen():
     global player
     global move_1
     global move_2
+    global walk_r_count
+    global walk_l_count
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
@@ -135,11 +209,9 @@ def start_screen():
         load_image('one.jpg'),
         (width, height))
     fon1 = pygame.transform.scale(
-        load_image('fon2.jpg'),
+        load_image('fon1.png'),
         (width, height))
     move_1 = "Stop"
-    move_2 = "Stop"
-    freeze = 0
     player, level_x, level_y = generate_level(load_level('map'))
     running = True
     while running:
@@ -147,9 +219,9 @@ def start_screen():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                if event.type == pygame.KEYDOWN and event.key == 9:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                     stop = 0
-                if event.type == pygame.KEYDOWN and event.key == 32:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB and stop == 0:
                     freeze = (freeze + 1) % 2
                 if freeze == 0 and stop == 0:
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
@@ -161,8 +233,11 @@ def start_screen():
 
                     if event.type == pygame.KEYUP and event.key == pygame.K_LEFT and move_1 == "Left":
                         move_1 = "Stop"
-                    if event.type == pygame.KEYUP and event.key == pygame.K_RIGHT and move_1 == "Right":
+                        walk_l_count = 0
+                    if event.type == pygame.KEYUP and \
+                            event.key == pygame.K_RIGHT and move_1 == "Right":
                         move_1 = "Stop"
+                        walk_r_count = 0
                     if event.type == pygame.KEYUP and event.key == pygame.K_UP and move_1 == "Up":
                         move_1 = "Stop"
 
@@ -173,14 +248,30 @@ def start_screen():
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_w:
                         move_1 = "Up"
 
-                    if event.type == pygame.KEYUP and event.key == pygame.K_a and move_2 == "Left":
+                    if event.type == pygame.KEYUP and event.key == pygame.K_a and move_1 == "Left":
                         move_1 = "Stop"
-                    if event.type == pygame.KEYUP and event.key == pygame.K_d and move_2 == "Right":
+                        walk_l_count = 0
+                    if event.type == pygame.KEYUP and event.key == pygame.K_d and move_1 == "Right":
                         move_1 = "Stop"
-                    if event.type == pygame.KEYUP and event.key == pygame.K_w and move_2 == "Up":
+                        walk_r_count = 0
+                    if event.type == pygame.KEYUP and event.key == pygame.K_w and move_1 == "Up":
                         move_1 = "Stop"
             if stop == 1:
+                intro_text = ["Press 'space' to start"]
+
                 screen.blit(fon, (0, 0))
+                pygame.init()
+                font = pygame.font.Font(None, 50)
+                text_coord = 50
+                for line in intro_text:
+                    string_rendered = font.render(line, 1, pygame.Color('grey'))
+                    intro_rect = string_rendered.get_rect()
+                    text_coord += 570
+                    intro_rect.top = text_coord
+                    intro_rect.x = 475
+                    text_coord += intro_rect.height
+                    screen.blit(string_rendered, intro_rect)
+
                 pygame.display.flip()
             if freeze == 0 and stop == 0:
                 player.update()
@@ -197,16 +288,42 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("One Level")
 clock = pygame.time.Clock()
 step = 3
+walk_r_count = 0
+walk_l_count = 0
 stop = 1
+freeze = 0
 v = 200
-fps = 100
+fps = 10
 wall_image = load_image('wall.png')
-thorn_image = load_image('шип.png', -1)
+thorn_image = load_image('шип1.png')
 player_image = pygame.transform.scale(load_image("стикмен-стоит.png", -1), (28, 57))
-key_image = pygame.transform.scale(load_image('ключ1.png', -1), (40, 44))
+jump = pygame.transform.scale(load_image('прыжок.png', -1), (28, 57))
+walkRight = [pygame.transform.scale(load_image('r1.png'), (28, 57)),
+             pygame.transform.scale(load_image('r2.png'), (28, 57)),
+             pygame.transform.scale(load_image('r3.png'), (28, 57)),
+             pygame.transform.scale(load_image('r4.png'), (28, 57)),
+             pygame.transform.scale(load_image('r5.png'), (28, 57)),
+             pygame.transform.scale(load_image('r6.png'), (28, 57)),
+             pygame.transform.scale(load_image('r7.png'), (28, 57))]
+walkLeft = [pygame.transform.scale(load_image('l1.png'), (28, 57)),
+            pygame.transform.scale(load_image('l2.png'), (28, 57)),
+            pygame.transform.scale(load_image('l3.png'), (28, 57)),
+            pygame.transform.scale(load_image('l4.png'), (28, 57)),
+            pygame.transform.scale(load_image('l5.png'), (28, 57)),
+            pygame.transform.scale(load_image('l6.png'), (28, 57)),
+            pygame.transform.scale(load_image('l7.png'), (28, 57))]
+
+key_image = pygame.transform.scale(load_image('ключ2.png', -1), (40, 44))
 tile_images = {"wall": load_image("wall.png"),
-               "thorn": load_image("шип.png", -1),
-               "door": pygame.transform.scale(load_image("door.png"), (30, 150))}
+               "right": pygame.transform.scale(load_image_thorn_right("right_normal.png", -1),
+                                               (21, 21)),
+               "left": pygame.transform.scale(load_image_thorn_left("left_normal.png", -1),
+                                              (21, 21)),
+               "top": pygame.transform.scale(load_image_thorn_top("top_normal.png", -1), (21, 21)),
+               "down": pygame.transform.scale(load_image_thorn_down("down_normal.png", -1),
+                                              (21, 21)),
+               "thorn": load_image("шип1.png"),
+               "door": pygame.transform.scale(load_image("door.png", -1), (30, 150))}
 tile_width = tile_height = 21
 if __name__ == "__main__":
     start_screen()
