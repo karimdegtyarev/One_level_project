@@ -138,13 +138,14 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         global walk_r_count
+        clock.tick(fps)
         if move_1 == "Up":
             player.image = jump
             player.move(0, -step)
         if move_1 == "Right":
             player.image = walkRight[walk_r_count]
             walk_r_count += 1
-            if walk_r_count == 6:
+            if walk_r_count == 12:
                 walk_r_count = 0
             print(walk_r_count)
             player.move(+step, 0)
@@ -234,10 +235,12 @@ def start_screen():
                     if event.type == pygame.KEYUP and event.key == pygame.K_LEFT and move_1 == "Left":
                         move_1 = "Stop"
                         walk_l_count = 0
+                        player.image = player_image
                     if event.type == pygame.KEYUP and \
                             event.key == pygame.K_RIGHT and move_1 == "Right":
                         move_1 = "Stop"
                         walk_r_count = 0
+                        player.image = player_image
                     if event.type == pygame.KEYUP and event.key == pygame.K_UP and move_1 == "Up":
                         move_1 = "Stop"
 
@@ -251,9 +254,11 @@ def start_screen():
                     if event.type == pygame.KEYUP and event.key == pygame.K_a and move_1 == "Left":
                         move_1 = "Stop"
                         walk_l_count = 0
+                        player.image = player_image
                     if event.type == pygame.KEYUP and event.key == pygame.K_d and move_1 == "Right":
                         move_1 = "Stop"
                         walk_r_count = 0
+                        player.image = player_image
                     if event.type == pygame.KEYUP and event.key == pygame.K_w and move_1 == "Up":
                         move_1 = "Stop"
             if stop == 1:
@@ -293,25 +298,32 @@ walk_l_count = 0
 stop = 1
 freeze = 0
 v = 200
-fps = 10
+fps = 30
 wall_image = load_image('wall.png')
 thorn_image = load_image('шип1.png')
 player_image = pygame.transform.scale(load_image("стикмен-стоит.png", -1), (28, 57))
-jump = pygame.transform.scadle(load_image('прыжок.png', -1), (28, 57))
-walkRight = [pygame.transform.scale(load_image('r1.png'), (28, 57)),
-             pygame.transform.scale(load_image('r2.png'), (28, 57)),
-             pygame.transform.scale(load_image('r3.png'), (28, 57)),
-             pygame.transform.scale(load_image('r4.png'), (28, 57)),
-             pygame.transform.scale(load_image('r5.png'), (28, 57)),
-             pygame.transform.scale(load_image('r6.png'), (28, 57)),
-             pygame.transform.scale(load_image('r7.png'), (28, 57))]
+jump = pygame.transform.scale(load_image('прыжок.png', -1), (28, 57))
+walkRight = [pygame.transform.scale(load_image('r1.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r1.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r2.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r2.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r3.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r3.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r4.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r4.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r5.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r5.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r6.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r6.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r7.png', -1), (28, 57)),
+             pygame.transform.scale(load_image('r7.png', -1), (28, 57))]
 # walkLeft = [pygame.transform.scale(load_image('l1.png'), (28, 57)),
-            #pygame.transform.scale(load_image('l2.png'), (28, 57)),
-            #pygame.transform.scale(load_image('l3.png'), (28, 57)),
-            #pygame.transform.scale(load_image('l4.png'), (28, 57)),
-            #pygame.transform.scale(load_image('l5.png'), (28, 57)),
-            #pygame.transform.scale(load_image('l6.png'), (28, 57)),
-            #pygame.transform.scale(load_image('l7.png'), (28, 57))]
+#            pygame.transform.scale(load_image('l2.png'), (28, 57)),
+#            pygame.transform.scale(load_image('l3.png'), (28, 57)),
+#            pygame.transform.scale(load_image('l4.png'), (28, 57)),
+#            pygame.transform.scale(load_image('l5.png'), (28, 57)),
+#            pygame.transform.scale(load_image('l6.png'), (28, 57)),
+#            pygame.transform.scale(load_image('l7.png'), (28, 57))]
 
 key_image = pygame.transform.scale(load_image('ключ2.png', -1), (40, 44))
 tile_images = {"wall": load_image("wall.png"),
