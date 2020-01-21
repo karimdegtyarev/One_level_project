@@ -131,40 +131,36 @@ class Player(pygame.sprite.Sprite):
         super().__init__(player_group, all_sprites)
         self.pos_x = pos_x
         self.pos_y = pos_y
+        self.onGround = True
         self.image = player_image
         self.type = "player"
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self):
+        global jump_power
         global walk_r_count
+        global walk_l_count
         clock.tick(fps)
-        if move_1 == "Up":
+        if move_1 == "Up" and self.onGround and jump_power >= 0:
             player.image = jump
-            player.move(0, -step)
+            player.move_up(step)
         if move_1 == "Right":
             player.image = walkRight[walk_r_count]
             walk_r_count += 1
             if walk_r_count == 12:
                 walk_r_count = 0
-            print(walk_r_count)
             player.move(+step, 0)
         if move_1 == "Left":
-            # player.image = walkLeft
+            player.image = walkLeft[walk_l_count]
+            walk_l_count += 1
+            if walk_l_count == 12:
+                walk_l_count = 0
             player.move(-step, 0)
 
     def move(self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
-        test = pygame.sprite.spritecollide(self, tiles_group, False)
-        #        if len(test) == 0:
-        #            self.gravity()
-        for obj in test:
-            if obj.type == "wall" or obj.type == "door":
-                self.rect.x -= dx
-                self.rect.y -= dy
-                break
-
         test = pygame.sprite.spritecollide(self, tiles_group, False)
         for obj in test:
             player.image = player_image
@@ -184,10 +180,20 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x = tile_width * self.pos_x + 15
                 self.rect.y = tile_height * self.pos_y + 5
                 break
+        for obj in test:
+            if obj.type == "wall" or obj.type == "door" or self.rect.y + 100 >= height:
+                self.rect.x -= dx
+                self.rect.y -= dy
+                break
 
+    def move_up(self, shag):
+        global jump_power
+        self.move(0, shag)
+        jump_power -= 1
 
-#    def gravity(self):
-#        self.rect.y += step
+    def gravity(self):
+        global GRAVITY
+        self.move(0, GRAVITY)
 
 
 def start_screen():
@@ -232,7 +238,8 @@ def start_screen():
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
                         move_1 = "Up"
 
-                    if event.type == pygame.KEYUP and event.key == pygame.K_LEFT and move_1 == "Left":
+                    if event.type == pygame.KEYUP and \
+                            event.key == pygame.K_LEFT and move_1 == "Left":
                         move_1 = "Stop"
                         walk_l_count = 0
                         player.image = player_image
@@ -261,6 +268,12 @@ def start_screen():
                         player.image = player_image
                     if event.type == pygame.KEYUP and event.key == pygame.K_w and move_1 == "Up":
                         move_1 = "Stop"
+            if freeze == 0 and stop == 0:
+                if jump_power != 0:
+                    print('ok')
+                    player.move_up(step)
+                if jump_power == 0:
+                    player.gravity()
             if stop == 1:
                 intro_text = ["Press 'space' to start"]
 
@@ -293,6 +306,8 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("One Level")
 clock = pygame.time.Clock()
 step = 3
+jump_power = 10
+GRAVITY = 3
 walk_r_count = 0
 walk_l_count = 0
 stop = 1
@@ -301,7 +316,7 @@ v = 200
 fps = 30
 wall_image = load_image('wall.png')
 thorn_image = load_image('шип1.png')
-player_image = pygame.transform.scale(load_image("стикмен-стоит.png", -1), (28, 57))
+player_image = pygame.transform.scale(load_image("стикмен-стоит2.png", -1), (28, 57))
 jump = pygame.transform.scale(load_image('прыжок.png', -1), (28, 57))
 walkRight = [pygame.transform.scale(load_image('r1.png', -1), (28, 57)),
              pygame.transform.scale(load_image('r1.png', -1), (28, 57)),
@@ -317,13 +332,20 @@ walkRight = [pygame.transform.scale(load_image('r1.png', -1), (28, 57)),
              pygame.transform.scale(load_image('r6.png', -1), (28, 57)),
              pygame.transform.scale(load_image('r7.png', -1), (28, 57)),
              pygame.transform.scale(load_image('r7.png', -1), (28, 57))]
-# walkLeft = [pygame.transform.scale(load_image('l1.png'), (28, 57)),
-#            pygame.transform.scale(load_image('l2.png'), (28, 57)),
-#            pygame.transform.scale(load_image('l3.png'), (28, 57)),
-#            pygame.transform.scale(load_image('l4.png'), (28, 57)),
-#            pygame.transform.scale(load_image('l5.png'), (28, 57)),
-#            pygame.transform.scale(load_image('l6.png'), (28, 57)),
-#            pygame.transform.scale(load_image('l7.png'), (28, 57))]
+walkLeft = [pygame.transform.scale(load_image('l1.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l1.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l2.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l2.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l3.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l3.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l4.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l4.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l5.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l5.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l6.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l6.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l7.png', -1), (28, 57)),
+            pygame.transform.scale(load_image('l7.png', -1), (28, 57))]
 
 key_image = pygame.transform.scale(load_image('ключ2.png', -1), (40, 44))
 tile_images = {"wall": load_image("wall.png"),
