@@ -131,18 +131,18 @@ class Player(pygame.sprite.Sprite):
         super().__init__(player_group, all_sprites)
         self.pos_x = pos_x
         self.pos_y = pos_y
-        self.onGround = True
+        self.jump_power = 50
+        self.jump_check = False
         self.image = player_image
         self.type = "player"
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self):
-        global jump_power
         global walk_r_count
         global walk_l_count
         clock.tick(fps)
-        if move_1 == "Up" and self.onGround and jump_power >= 0:
+        if move_1 == "Up" and self.jump_power >= 0:
             player.image = jump
             player.move_up(step)
         if move_1 == "Right":
@@ -159,6 +159,7 @@ class Player(pygame.sprite.Sprite):
             player.move(-step, 0)
 
     def move(self, dx, dy):
+        global GRAVITY
         self.rect.x += dx
         self.rect.y += dy
         test = pygame.sprite.spritecollide(self, tiles_group, False)
@@ -181,19 +182,37 @@ class Player(pygame.sprite.Sprite):
                 self.rect.y = tile_height * self.pos_y + 5
                 break
         for obj in test:
-            if obj.type == "wall" or obj.type == "door" or self.rect.y + 100 >= height:
+            if obj.type == "wall" or obj.type == "door":
+                if dy > 0:
+                    GRAVITY = 3
+                    self.jump_power = 50
+                    self.jump_check = False
+                elif dy < 0:
+                    self.jump_power = 0
+                    self.jump_check = False
                 self.rect.x -= dx
                 self.rect.y -= dy
                 break
 
     def move_up(self, shag):
-        global jump_power
-        self.move(0, shag)
-        jump_power -= 1
+        self.move(0, -shag)
+        self.jump_power -= 1
 
     def gravity(self):
+        print('ok')
         global GRAVITY
         self.move(0, GRAVITY)
+        GRAVITY += 0.1
+
+    def on_ground_or_not(self):
+        global step
+        self.rect.y += step
+        test = pygame.sprite.spritecollide(self, tiles_group, False)
+        if len(test) > 0:
+            self.rect.y -= step
+            return True
+        else:
+            return False
 
 
 def start_screen():
@@ -203,9 +222,9 @@ def start_screen():
     global key_group
     global freeze
     global stop
+    global GRAVITY
     global player
     global move_1
-    global move_2
     global walk_r_count
     global walk_l_count
     all_sprites = pygame.sprite.Group()
@@ -237,6 +256,9 @@ def start_screen():
                         move_1 = "Right"
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
                         move_1 = "Up"
+                        if player.on_ground_or_not():
+                            print('ok')
+                            player.jump_check = True
 
                     if event.type == pygame.KEYUP and \
                             event.key == pygame.K_LEFT and move_1 == "Left":
@@ -257,6 +279,8 @@ def start_screen():
                         move_1 = "Right"
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_w:
                         move_1 = "Up"
+                        if player.on_ground_or_not():
+                            player.jump_check = True
 
                     if event.type == pygame.KEYUP and event.key == pygame.K_a and move_1 == "Left":
                         move_1 = "Stop"
@@ -269,10 +293,17 @@ def start_screen():
                     if event.type == pygame.KEYUP and event.key == pygame.K_w and move_1 == "Up":
                         move_1 = "Stop"
             if freeze == 0 and stop == 0:
-                if jump_power != 0:
-                    print('ok')
+                print(player.jump_power)
+                print(player.jump_check)
+                print(player.on_ground_or_not())
+                if player.on_ground_or_not():
+                    player.jump_power = 50
+                    GRAVITY = 3
+                if player.jump_power > 0 and player.jump_check:
                     player.move_up(step)
-                if jump_power == 0:
+                if not player.on_ground_or_not() or player.jump_power == 0:
+                    if not player.on_ground_or_not():
+                        player.jump_power = 0
                     player.gravity()
             if stop == 1:
                 intro_text = ["Press 'space' to start"]
@@ -306,7 +337,6 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("One Level")
 clock = pygame.time.Clock()
 step = 3
-jump_power = 10
 GRAVITY = 3
 walk_r_count = 0
 walk_l_count = 0
