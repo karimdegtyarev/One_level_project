@@ -98,7 +98,7 @@ def generate_level(levelmap):
                 Tile("top", x, y)
             elif levelmap[y][x] == '4':
                 Tile("down", x, y)
-    Tile('door', 49, 26)
+    door = Door(49, 25.7)
     first_player = Player(5, 13)
     key = Key(52, 6)
     return first_player, x, y
@@ -111,12 +111,15 @@ class Key(pygame.sprite.Sprite):
         self.type = "key"
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 15, tile_height * pos_y + 5)
-    def kill(self):
-        pass
 
 
-class Door:
-    pass
+class Door(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(door_group, all_sprites)
+        self.image = door_image
+        self.type = "door"
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x + 15, tile_height * pos_y + 5)
 
 
 class Tile(pygame.sprite.Sprite):
@@ -145,7 +148,6 @@ class Player(pygame.sprite.Sprite):
         global walk_l_count
         clock.tick(fps)
         if move_1 == "Up" and self.on_ground_or_not():
-            print(0)
             player.image = jump
             self.jump_check = True
         if move_1 == "Right":
@@ -166,12 +168,24 @@ class Player(pygame.sprite.Sprite):
     def move(self, dx, dy):
         global gravity_step
         global jump_step
+        mini_test = 0
         self.rect.x += dx
         self.rect.y += dy
         test = pygame.sprite.spritecollide(self, tiles_group, False)
         test1 = pygame.sprite.spritecollide(self, key_group, False)
-        for i in test1:
-            pass
+        test2 = pygame.sprite.spritecollide(self, door_group, False)
+        for obj in test1:
+            Key.kill(obj)
+            mini_test = 1
+        print(len(test1))
+        print(mini_test)
+        if len(test1) == 0 and mini_test == 1:
+            for obj in test2:
+                Door.kill(obj)
+        for obj in test2:
+            self.rect.x -= dx
+            self.rect.y -= dy
+            break
         for obj in test:
             self.image = player_image
             self.jump_check = False
@@ -195,9 +209,8 @@ class Player(pygame.sprite.Sprite):
                 self.rect.y = tile_height * self.pos_y + 5
                 break
         for obj in test:
-            if obj.type == "wall" or obj.type == "door":
+            if obj.type == "wall":
                 if dy > 0:
-                    print(2)
                     gravity_step = 3
                     jump_step = 9
                     self.jump_power = 35
@@ -242,6 +255,7 @@ def start_screen():
     global all_sprites
     global player_group
     global key_group
+    global door_group
     global freeze
     global stop
     global GRAVITY
@@ -253,6 +267,7 @@ def start_screen():
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     key_group = pygame.sprite.Group()
+    door_group = pygame.sprite.Group()
     fon = pygame.transform.scale(
         load_image('one.jpg'),
         (width, height))
@@ -276,7 +291,7 @@ def start_screen():
                         move_1 = "Left"
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
                         move_1 = "Right"
-                    if event.type == pygame.KEYDOWN and\
+                    if event.type == pygame.KEYDOWN and \
                             event.key == pygame.K_UP and not player.jump_check:
                         move_1 = "Up"
 
@@ -299,7 +314,7 @@ def start_screen():
                         move_1 = "Left"
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
                         move_1 = "Right"
-                    if event.type == pygame.KEYDOWN and\
+                    if event.type == pygame.KEYDOWN and \
                             event.key == pygame.K_w and not player.jump_check:
                         move_1 = "Up"
 
@@ -348,6 +363,7 @@ def start_screen():
                 tiles_group.draw(screen)
                 key_group.draw(screen)
                 player_group.draw(screen)
+                door_group.draw(screen)
                 pygame.display.flip()
 
 
@@ -366,8 +382,9 @@ stop = 1
 freeze = 0
 v = 200
 fps = 30
+which_level = 1
 wall_image = load_image('wall.png')
-thorn_image = load_image('шип1.png')
+door_image = pygame.transform.scale(load_image("door.png", -1), (30, 150))
 player_image = pygame.transform.scale(load_image("стикмен-стоит2.png", -1), (28, 57))
 jump = pygame.transform.scale(load_image('прыжок.png', -1), (28, 57))
 fall = pygame.transform.scale(load_image('падение.png', -1), (28, 57))
@@ -408,9 +425,7 @@ tile_images = {"wall": load_image("wall.png"),
                                               (21, 21)),
                "top": pygame.transform.scale(load_image_thorn_top("top_normal.png", -1), (21, 21)),
                "down": pygame.transform.scale(load_image_thorn_down("down_normal.png", -1),
-                                              (21, 21)),
-               "thorn": load_image("шип1.png"),
-               "door": pygame.transform.scale(load_image("door.png", -1), (30, 150))}
+                                              (21, 21))}
 tile_width = tile_height = 21
 if __name__ == "__main__":
     start_screen()
