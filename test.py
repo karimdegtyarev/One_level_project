@@ -111,6 +111,8 @@ class Key(pygame.sprite.Sprite):
         self.type = "key"
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 15, tile_height * pos_y + 5)
+    def kill(self):
+        pass
 
 
 class Door:
@@ -131,7 +133,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__(player_group, all_sprites)
         self.pos_x = pos_x
         self.pos_y = pos_y
-        self.jump_power = 70
+        self.jump_power = 35
         self.jump_check = False
         self.image = player_image
         self.type = "player"
@@ -143,8 +145,7 @@ class Player(pygame.sprite.Sprite):
         global walk_l_count
         clock.tick(fps)
         if move_1 == "Up" and self.on_ground_or_not():
-            print(self.on_ground_or_not())
-            print(999)
+            print(0)
             player.image = jump
             self.jump_check = True
         if move_1 == "Right":
@@ -163,14 +164,20 @@ class Player(pygame.sprite.Sprite):
             player.move(-step, 0)
 
     def move(self, dx, dy):
-        global GRAVITY
+        global gravity_step
+        global jump_step
         self.rect.x += dx
         self.rect.y += dy
         test = pygame.sprite.spritecollide(self, tiles_group, False)
+        test1 = pygame.sprite.spritecollide(self, key_group, False)
+        for i in test1:
+            pass
         for obj in test:
             self.image = player_image
             self.jump_check = False
-            self.jump_power = 70
+            self.jump_power = 35
+            gravity_step = 3
+            jump_step = 9
             if obj.type == "right":
                 self.rect.x = tile_width * self.pos_x + 15
                 self.rect.y = tile_height * self.pos_y + 5
@@ -191,24 +198,33 @@ class Player(pygame.sprite.Sprite):
             if obj.type == "wall" or obj.type == "door":
                 if dy > 0:
                     print(2)
-                    GRAVITY = 3
-                    self.jump_power = 70
+                    gravity_step = 3
+                    jump_step = 9
+                    self.jump_power = 35
                     self.jump_check = False
                     self.image = player_image
                 elif dy < 0:
-                    self.jump_power = 70
+                    gravity_step = 3
+                    jump_step = 9
+                    self.jump_power = 35
                     self.jump_check = False
+                    self.image = fall
                 self.rect.x -= dx
                 self.rect.y -= dy
                 break
 
     def move_up(self, shag):
-        self.move(0, -shag)
+        global JUMP_GRAVITY
+        global jump_step
+        self.move(0, -jump_step)
+        jump_step *= JUMP_GRAVITY
 
     def gravity(self):
         global GRAVITY
-        self.move(0, GRAVITY)
-        GRAVITY += 0.1
+        global gravity_step
+        self.jump_power = 35
+        self.move(0, gravity_step)
+        gravity_step /= GRAVITY
 
     def on_ground_or_not(self):
         global step
@@ -260,14 +276,14 @@ def start_screen():
                         move_1 = "Left"
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
                         move_1 = "Right"
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+                    if event.type == pygame.KEYDOWN and\
+                            event.key == pygame.K_UP and not player.jump_check:
                         move_1 = "Up"
 
                     if event.type == pygame.KEYUP and \
                             event.key == pygame.K_LEFT and move_1 == "Left":
                         move_1 = "Stop"
                         walk_l_count = 0
-                        print(player.jump_check)
                         if not player.jump_check:
                             player.image = player_image
                     if event.type == pygame.KEYUP and \
@@ -283,7 +299,8 @@ def start_screen():
                         move_1 = "Left"
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
                         move_1 = "Right"
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_w:
+                    if event.type == pygame.KEYDOWN and\
+                            event.key == pygame.K_w and not player.jump_check:
                         move_1 = "Up"
 
                     if event.type == pygame.KEYUP and event.key == pygame.K_a and move_1 == "Left":
@@ -300,13 +317,12 @@ def start_screen():
                         move_1 = "Stop"
             if freeze == 0 and stop == 0:
                 if player.jump_check and player.jump_power > 0:
-                    print(0)
                     player.move_up(step)
                     player.jump_power -= 1
                     if player.jump_power == 0:
                         player.jump_check = False
                 elif not player.on_ground_or_not():
-                    print(1)
+                    player.image = fall
                     player.gravity()
             if stop == 1:
                 intro_text = ["Press 'space' to start"]
@@ -339,8 +355,11 @@ size = width, height = 1260, 690
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("One Level")
 clock = pygame.time.Clock()
-step = 3
-GRAVITY = 3
+step = 4
+GRAVITY = 0.99
+gravity_step = 3
+JUMP_GRAVITY = 0.97
+jump_step = 9
 walk_r_count = 0
 walk_l_count = 0
 stop = 1
@@ -351,6 +370,7 @@ wall_image = load_image('wall.png')
 thorn_image = load_image('шип1.png')
 player_image = pygame.transform.scale(load_image("стикмен-стоит2.png", -1), (28, 57))
 jump = pygame.transform.scale(load_image('прыжок.png', -1), (28, 57))
+fall = pygame.transform.scale(load_image('падение.png', -1), (28, 57))
 walkRight = [pygame.transform.scale(load_image('r1.png', -1), (28, 57)),
              pygame.transform.scale(load_image('r1.png', -1), (28, 57)),
              pygame.transform.scale(load_image('r2.png', -1), (28, 57)),
