@@ -81,6 +81,8 @@ def load_level(filename):
 
 
 def generate_level(levelmap):
+    global door
+    global key
     first_player, x, y = None, None, None
     fon = pygame.transform.scale(
         load_image('fon2.jpg'),
@@ -168,28 +170,28 @@ class Player(pygame.sprite.Sprite):
     def move(self, dx, dy):
         global gravity_step
         global jump_step
-        mini_test = 0
+        global which_level
         self.rect.x += dx
         self.rect.y += dy
         test = pygame.sprite.spritecollide(self, tiles_group, False)
         test1 = pygame.sprite.spritecollide(self, key_group, False)
         test2 = pygame.sprite.spritecollide(self, door_group, False)
+        if width - 60 < self.rect.x < width:
+            which_level += 1
+        print(which_level)
         for obj in test1:
             Key.kill(obj)
-            mini_test = 1
-        if mini_test == 1:
-            for obj in test2:
-                Door.kill(obj)
+            Door.kill(door)
         for obj in test2:
             self.rect.x -= dx
             self.rect.y -= dy
             break
         for obj in test:
             self.image = player_image
-            self.jump_check = False
-            self.jump_power = 35
-            gravity_step = 2
-            jump_step = 8
+            # key = Key(52, 6)
+            # door = Door(49, 25.7)
+            key_group.draw(screen)
+            door_group.draw(screen)
             if obj.type == "right":
                 self.rect.x = tile_width * self.pos_x + 15
                 self.rect.y = tile_height * self.pos_y + 5
@@ -205,6 +207,10 @@ class Player(pygame.sprite.Sprite):
             elif obj.type == "down":
                 self.rect.x = tile_width * self.pos_x + 15
                 self.rect.y = tile_height * self.pos_y + 5
+                self.jump_check = False
+                self.jump_power = 35
+                gravity_step = 2
+                jump_step = 8
                 break
         for obj in test:
             if obj.type == "wall":
@@ -260,10 +266,15 @@ def start_screen():
     global freeze
     global stop
     global GRAVITY
+    global JUMP_GRAVITY
+    global jump_step
+    global gravity_step
     global player
     global move_1
     global walk_r_count
     global walk_l_count
+    global which_level
+    global which_level_past
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
@@ -275,8 +286,14 @@ def start_screen():
     fon1 = pygame.transform.scale(
         load_image('fon1.png'),
         (width, height))
+    intro_text_levels = [""]
     move_1 = "Stop"
-    player, level_x, level_y = generate_level(load_level('map'))
+    if which_level != which_level_past:
+        which_level_past += 1
+        if which_level != 1:
+            player.kill()
+        player, level_x, level_y = generate_level(load_level('map'))
+        intro_text_levels = ["01.Тут всё просто"]
     running = True
     while running:
         while running:
@@ -344,7 +361,6 @@ def start_screen():
                     player.gravity()
             if stop == 1:
                 intro_text = ["Press 'space' to start"]
-
                 screen.blit(fon, (0, 0))
                 pygame.init()
                 font = pygame.font.Font(None, 50)
@@ -360,13 +376,41 @@ def start_screen():
 
                 pygame.display.flip()
             if freeze == 0 and stop == 0:
+                if which_level != which_level_past:
+                    which_level_past += 1
+                    GRAVITY = 0.95
+                    gravity_step = 2
+                    JUMP_GRAVITY = 0.98
+                    jump_step = 8
+                    walk_r_count = 0
+                    walk_l_count = 0
+                    if which_level != 1:
+                        player.kill()
+                    if which_level == 2:
+                        player, level_x, level_y = generate_level(load_level('map'))
+                        intro_text_levels = ["02.Ключ невидимка"]
+                    elif which_level == 3:
+                        player, level_x, level_y = generate_level(load_level('map'))
+                        intro_text_levels = ["03.Пока всё"]
+
                 player.update()
                 screen.fill((0, 0, 0))
                 screen.blit(fon1, (0, 0))
                 tiles_group.draw(screen)
                 key_group.draw(screen)
-                player_group.draw(screen)
                 door_group.draw(screen)
+                pygame.init()
+                font = pygame.font.Font(None, 50)
+                text_coord = 50
+                for line in intro_text_levels:
+                    string_rendered = font.render(line, 1, pygame.Color('white'))
+                    intro_rect = string_rendered.get_rect()
+                    text_coord += 220
+                    intro_rect.top = text_coord
+                    intro_rect.x = 400
+                    text_coord += intro_rect.height
+                    screen.blit(string_rendered, intro_rect)
+                player_group.draw(screen)
                 pygame.display.flip()
 
 
@@ -386,6 +430,7 @@ freeze = 0
 v = 200
 fps = 30
 which_level = 1
+which_level_past = 0
 wall_image = load_image('wall.png')
 door_image = pygame.transform.scale(load_image("door.png", -1), (30, 150))
 player_image = pygame.transform.scale(load_image("стикмен-стоит2.png", -1), (28, 57))
