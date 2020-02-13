@@ -169,6 +169,8 @@ class Player(pygame.sprite.Sprite):
 
     def move(self, dx, dy):
         global gravity_step
+        global door
+        global key
         global jump_step
         global which_level
         self.rect.x += dx
@@ -178,7 +180,6 @@ class Player(pygame.sprite.Sprite):
         test2 = pygame.sprite.spritecollide(self, door_group, False)
         if width - 60 < self.rect.x < width:
             which_level += 1
-        print(which_level)
         for obj in test1:
             Key.kill(obj)
             Door.kill(door)
@@ -188,10 +189,6 @@ class Player(pygame.sprite.Sprite):
             break
         for obj in test:
             self.image = player_image
-            # key = Key(52, 6)
-            # door = Door(49, 25.7)
-            key_group.draw(screen)
-            door_group.draw(screen)
             if obj.type == "right":
                 self.rect.x = tile_width * self.pos_x + 15
                 self.rect.y = tile_height * self.pos_y + 5
@@ -225,7 +222,6 @@ class Player(pygame.sprite.Sprite):
                     jump_step = 8
                     self.jump_power = 35
                     self.jump_check = False
-                    print(9)
                 self.rect.x -= dx
                 self.rect.y -= dy
                 break
@@ -275,6 +271,7 @@ def start_screen():
     global walk_l_count
     global which_level
     global which_level_past
+    global key
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
@@ -389,6 +386,9 @@ def start_screen():
                     if which_level == 2:
                         player, level_x, level_y = generate_level(load_level('map'))
                         intro_text_levels = ["02.Ключ невидимка"]
+                        key.image = invisible
+                        key.rect.x = 300
+                        key.rect.y = 640
                     elif which_level == 3:
                         player, level_x, level_y = generate_level(load_level('map'))
                         intro_text_levels = ["03.Пока всё"]
@@ -466,6 +466,7 @@ walkLeft = [pygame.transform.scale(load_image('l1.png', -1), (28, 57)),
             pygame.transform.scale(load_image('l7.png', -1), (28, 57))]
 
 key_image = pygame.transform.scale(load_image('ключ2.png', -1), (40, 44))
+invisible = pygame.transform.scale(load_image('invisible.jpg', -1), (40, 44))
 tile_images = {"wall": load_image("wall.png"),
                "right": pygame.transform.scale(load_image_thorn_right("right_normal.png", -1),
                                                (21, 21)),
