@@ -3,11 +3,13 @@ import sys
 import os
 
 
+# Функция для выхода из игры
 def terminate():
     pygame.quit()
     sys.exit()
 
 
+# Загрузка фотографии
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
@@ -20,6 +22,8 @@ def load_image(name, colorkey=None):
     return image
 
 
+# Далее идут индивидуальные фукции для загрузки отдельных фотографий
+# Изображение шипа повёрнутого вправо
 def load_image_thorn_right(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
@@ -32,6 +36,7 @@ def load_image_thorn_right(name, colorkey=None):
     return image
 
 
+# Изображение шипа повёрнутого влево
 def load_image_thorn_left(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
@@ -44,6 +49,7 @@ def load_image_thorn_left(name, colorkey=None):
     return image
 
 
+# Изображение шипа повёрнутого вверх
 def load_image_thorn_top(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
@@ -56,6 +62,7 @@ def load_image_thorn_top(name, colorkey=None):
     return image
 
 
+# Изображение шипа повёрнутого вниз
 def load_image_thorn_down(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
@@ -68,6 +75,7 @@ def load_image_thorn_down(name, colorkey=None):
     return image
 
 
+# Загружаем уровень
 def load_level(filename):
     filename = "data/" + filename
     # читаем уровень, убирая символы перевода строки
@@ -80,6 +88,7 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
+# Создаем и размещаем все объекты по местам
 def generate_level(levelmap):
     global door
     global key
@@ -106,6 +115,7 @@ def generate_level(levelmap):
     return first_player, x, y
 
 
+# Создаем объект - ключ
 class Key(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(key_group, all_sprites)
@@ -115,6 +125,7 @@ class Key(pygame.sprite.Sprite):
             tile_width * pos_x + 15, tile_height * pos_y + 5)
 
 
+# Создаем объект - дверь
 class Door(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(door_group, all_sprites)
@@ -124,6 +135,7 @@ class Door(pygame.sprite.Sprite):
             tile_width * pos_x + 15, tile_height * pos_y + 5)
 
 
+# Создаем стены и все виды шипов
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
@@ -133,6 +145,7 @@ class Tile(pygame.sprite.Sprite):
             tile_width * pos_x, tile_height * pos_y)
 
 
+# Создаем игрока и все его способности
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
@@ -145,13 +158,11 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 15, tile_height * pos_y + 5)
 
+    # Анимация движения влево и вправо
     def update(self):
         global walk_r_count
         global walk_l_count
         clock.tick(fps)
-        # if move_1 == "Up" and self.on_ground_or_not():
-        #    player.image = jump
-        #    self.jump_check = True
         if move_1 == "Right":
             if not self.jump_check:
                 player.image = walkRight[walk_r_count]
@@ -167,6 +178,8 @@ class Player(pygame.sprite.Sprite):
                     walk_l_count = 0
             player.move(-step, 0)
 
+    # Само движение игрока путем изменения координат объекта - Player
+    # ,а также реакция на шипы,на удар об потолок или об пол
     def move(self, dx, dy):
         global gravity_step
         global door
@@ -226,6 +239,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.y -= dy
                 break
 
+    # Осуществляет функцию прыжка
     def move_up(self):
         global JUMP_GRAVITY
         global jump_step
@@ -235,6 +249,7 @@ class Player(pygame.sprite.Sprite):
         if self.jump_power == 0:
             self.jump_check = False
 
+    # Сила гравитации
     def gravity(self):
         global GRAVITY
         global gravity_step
@@ -242,6 +257,7 @@ class Player(pygame.sprite.Sprite):
         self.move(0, gravity_step)
         gravity_step /= GRAVITY
 
+    # Проверка объект на земле или нет
     def on_ground_or_not(self):
         global step
         self.rect.y += step
@@ -253,6 +269,7 @@ class Player(pygame.sprite.Sprite):
             return False
 
 
+# Создание фона, названий уровней, обновление груп и экрана
 def start_screen():
     global tiles_group
     global all_sprites
@@ -292,128 +309,131 @@ def start_screen():
         player, level_x, level_y = generate_level(load_level('map'))
         intro_text_levels = ["01.Тут всё просто"]
     running = True
+    # Основной цикл :принятие информации с клавиш
     while running:
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    stop = 0
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB and stop == 0:
-                    freeze = (freeze + 1) % 2
-                if freeze == 0 and stop == 0:
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
-                        move_1 = "Left"
-
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
-                        move_1 = "Right"
-
-                    if event.type == pygame.KEYUP and \
-                            event.key == pygame.K_LEFT and move_1 == "Left":
-                        move_1 = "Stop"
-                        walk_l_count = 0
-                        if not player.jump_check:
-                            player.image = player_image
-
-                    if event.type == pygame.KEYUP and \
-                            event.key == pygame.K_RIGHT and move_1 == "Right":
-                        move_1 = "Stop"
-                        walk_r_count = 0
-                        if not player.jump_check:
-                            player.image = player_image
-
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_a:
-                        move_1 = "Left"
-
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
-                        move_1 = "Right"
-
-                    if event.type == pygame.KEYUP and event.key == pygame.K_a and move_1 == "Left":
-                        move_1 = "Stop"
-                        walk_l_count = 0
-                        if not player.jump_check:
-                            player.image = player_image
-
-                    if event.type == pygame.KEYUP and event.key == pygame.K_d and move_1 == "Right":
-                        move_1 = "Stop"
-                        walk_r_count = 0
-                        if not player.jump_check:
-                            player.image = player_image
-
-                    if player.on_ground_or_not():
-                        if event.type == pygame.KEYDOWN and \
-                                event.key == pygame.K_UP:
-                            move_1 = "Up"
-                            player.jump_check = True
-                        if event.type == pygame.KEYDOWN and \
-                                event.key == pygame.K_w:
-                            move_1 = "Up"
-                            player.jump_check = True
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                stop = 0
+            # Пауза
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB and stop == 0:
+                freeze = (freeze + 1) % 2
             if freeze == 0 and stop == 0:
-                if player.jump_check:
-                    player.image = jump
-                    player.move_up()
-                elif not player.on_ground_or_not() and not player.jump_check:
-                    player.image = fall
-                    player.gravity()
-            if stop == 1:
-                intro_text = ["Press 'space' to start"]
-                screen.blit(fon, (0, 0))
-                pygame.init()
-                font = pygame.font.Font(None, 50)
-                text_coord = 50
-                for line in intro_text:
-                    string_rendered = font.render(line, 1, pygame.Color('grey'))
-                    intro_rect = string_rendered.get_rect()
-                    text_coord += 570
-                    intro_rect.top = text_coord
-                    intro_rect.x = 475
-                    text_coord += intro_rect.height
-                    screen.blit(string_rendered, intro_rect)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
+                    move_1 = "Left"
 
-                pygame.display.flip()
-            if freeze == 0 and stop == 0:
-                if which_level != which_level_past:
-                    which_level_past += 1
-                    GRAVITY = 0.95
-                    gravity_step = 2
-                    JUMP_GRAVITY = 0.98
-                    jump_step = 8
-                    walk_r_count = 0
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
+                    move_1 = "Right"
+
+                if event.type == pygame.KEYUP and \
+                        event.key == pygame.K_LEFT and move_1 == "Left":
+                    move_1 = "Stop"
                     walk_l_count = 0
-                    if which_level != 1:
-                        player.kill()
-                    if which_level == 2:
-                        player, level_x, level_y = generate_level(load_level('map'))
-                        intro_text_levels = ["02.Ключ невидимка"]
-                        key.image = invisible
-                        key.rect.x = 300
-                        key.rect.y = 640
-                    elif which_level == 3:
-                        player, level_x, level_y = generate_level(load_level('map'))
-                        intro_text_levels = ["03.Пока всё"]
+                    if not player.jump_check:
+                        player.image = player_image
 
-                player.update()
-                screen.fill((0, 0, 0))
-                screen.blit(fon1, (0, 0))
-                tiles_group.draw(screen)
-                key_group.draw(screen)
-                door_group.draw(screen)
-                pygame.init()
-                font = pygame.font.Font(None, 50)
-                text_coord = 50
-                for line in intro_text_levels:
-                    string_rendered = font.render(line, 1, pygame.Color('white'))
-                    intro_rect = string_rendered.get_rect()
-                    text_coord += 220
-                    intro_rect.top = text_coord
-                    intro_rect.x = 400
-                    text_coord += intro_rect.height
-                    screen.blit(string_rendered, intro_rect)
-                player_group.draw(screen)
-                pygame.display.flip()
+                if event.type == pygame.KEYUP and \
+                        event.key == pygame.K_RIGHT and move_1 == "Right":
+                    move_1 = "Stop"
+                    walk_r_count = 0
+                    if not player.jump_check:
+                        player.image = player_image
+
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_a:
+                    move_1 = "Left"
+
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
+                    move_1 = "Right"
+
+                if event.type == pygame.KEYUP and event.key == pygame.K_a and move_1 == "Left":
+                    move_1 = "Stop"
+                    walk_l_count = 0
+                    if not player.jump_check:
+                        player.image = player_image
+
+                if event.type == pygame.KEYUP and event.key == pygame.K_d and move_1 == "Right":
+                    move_1 = "Stop"
+                    walk_r_count = 0
+                    if not player.jump_check:
+                        player.image = player_image
+
+                if player.on_ground_or_not():
+                    if event.type == pygame.KEYDOWN and \
+                            event.key == pygame.K_UP:
+                        move_1 = "Up"
+                        player.jump_check = True
+                    if event.type == pygame.KEYDOWN and \
+                            event.key == pygame.K_w:
+                        move_1 = "Up"
+                        player.jump_check = True
+        if freeze == 0 and stop == 0:
+            if player.jump_check:
+                player.image = jump
+                player.move_up()
+            elif not player.on_ground_or_not() and not player.jump_check:
+                player.image = fall
+                player.gravity()
+        if stop == 1:
+            intro_text = ["Press 'space' to start"]
+            screen.blit(fon, (0, 0))
+            pygame.init()
+            font = pygame.font.Font(None, 50)
+            text_coord = 50
+            for line in intro_text:
+                string_rendered = font.render(line, 1, pygame.Color('grey'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 570
+                intro_rect.top = text_coord
+                intro_rect.x = 475
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+
+            pygame.display.flip()
+        # Определение уровня и включение особенностей этого уровня
+        if freeze == 0 and stop == 0:
+            if which_level != which_level_past:
+                which_level_past += 1
+                GRAVITY = 0.95
+                gravity_step = 2
+                JUMP_GRAVITY = 0.98
+                jump_step = 8
+                walk_r_count = 0
+                walk_l_count = 0
+                if which_level != 1:
+                    player.kill()
+                if which_level == 2:
+                    player, level_x, level_y = generate_level(load_level('map'))
+                    intro_text_levels = ["02.Ключ невидимка"]
+                    key.image = invisible
+                    key.rect.x = 300
+                    key.rect.y = 640
+                elif which_level == 3:
+                    player, level_x, level_y = generate_level(load_level('map'))
+                    intro_text_levels = ["03.Пока всё"]
+
+            player.update()
+            screen.fill((0, 0, 0))
+            screen.blit(fon1, (0, 0))
+            tiles_group.draw(screen)
+            key_group.draw(screen)
+            door_group.draw(screen)
+            pygame.init()
+            font = pygame.font.Font(None, 50)
+            text_coord = 50
+            for line in intro_text_levels:
+                string_rendered = font.render(line, 1, pygame.Color('white'))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 220
+                intro_rect.top = text_coord
+                intro_rect.x = 400
+                text_coord += intro_rect.height
+                screen.blit(string_rendered, intro_rect)
+            player_group.draw(screen)
+            pygame.display.flip()
 
 
+# Постоянные переменные а также фотографии
 size = width, height = 1260, 690
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("One Level")
